@@ -3,11 +3,23 @@
  * Centralizes all asynchronous fetch() requests to the FastAPI backend.
  */
 
-const API_BASE_URL = window.location.origin;
+// Dynamic Base URL: supports local dev, unified Render deploy, and decoupled Vercel deploy
+const storedBackend = typeof localStorage !== 'undefined' ? localStorage.getItem('sems_backend_url') : null;
+const isVercelHost = typeof window !== 'undefined' && window.location.hostname.includes('vercel.app');
+const API_BASE_URL = window.__SEMS_BACKEND_URL__ || storedBackend || (isVercelHost ? 'https://sems-smart-energy.onrender.com' : (typeof window !== 'undefined' ? window.location.origin : ''));
 
 class VeraApiClient {
     constructor(baseUrl = API_BASE_URL) {
-        this.baseUrl = baseUrl;
+        this.baseUrl = baseUrl.replace(/\/$/, '');
+    }
+
+    setBackendUrl(url) {
+        if (!url) return;
+        this.baseUrl = url.replace(/\/$/, '');
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('sems_backend_url', this.baseUrl);
+        }
+        window.location.reload();
     }
 
     async _request(endpoint, options = {}) {
@@ -292,6 +304,15 @@ class VeraApiClient {
      * WebSocket Telemetry Stream Factory
      */
     createTelemetryWebSocket() {
+        try {
+            if (this.baseUrl && this.baseUrl.startsWith('http')) {
+                const urlObj = new URL(this.baseUrl);
+                const protocol = urlObj.protocol === 'https:' ? 'wss:' : 'ws:';
+                return new WebSocket(`${protocol}//${urlObj.host}/ws/telemetry`);
+            }
+        } catch (e) {
+            console.warn('Fallback to current host for WebSocket:', e);
+        }
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${window.location.host}/ws/telemetry`;
         return new WebSocket(wsUrl);

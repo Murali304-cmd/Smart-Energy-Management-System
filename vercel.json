@@ -1,0 +1,31 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/static/:path*",
+      "destination": "/frontend/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://sems-smart-energy.onrender.com/api/:path*"
+    },
+    {
+      "source": "/",
+      "destination": "/frontend/index.html"
+    },
+    {
+      "source": "/((?!frontend).*)",
+      "destination": "/frontend/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,PUT,DELETE,OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
+      ]
+    }
+  ]
+}
