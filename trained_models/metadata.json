@@ -1,0 +1,89 @@
+{
+  "training_timestamp": "2026-09-27T05:58:17.581357+00:00",
+  "evaluation_protocol": "Chronological 70% Train / 15% Validation / 15% Test split with strictly zero future leakage",
+  "models": {
+    "solar_mlp": {
+      "target": "solar_irradiance",
+      "model_type": "Multi-Layer Perceptron (PyTorch) with Astronomical Night Masking",
+      "features": [
+        "temperature",
+        "humidity",
+        "cloud_cover",
+        "wind_speed",
+        "heat_index",
+        "cooling_degree_metric",
+        "hour",
+        "month",
+        "weekday",
+        "sin_hour",
+        "cos_hour",
+        "sin_month",
+        "cos_month"
+      ],
+      "test_samples": 879,
+      "metrics": {
+        "MAE": 41.781,
+        "RMSE": 73.478,
+        "R2": 0.9414,
+        "WAPE": 17.8,
+        "Daytime_MAPE": 49.66
+      }
+    },
+    "load_lstm": {
+      "target": "energy_usage",
+      "model_type": "Deep Bidirectional LSTM with Multi-Lag Feature Engineering",
+      "sequence_length": 12,
+      "features": [
+        "energy_usage",
+        "previous_energy_usage",
+        "lag_1",
+        "lag_2",
+        "lag_3",
+        "lag_4",
+        "lag_8",
+        "lag_12",
+        "rolling_mean_4",
+        "rolling_std_4",
+        "rolling_mean_8",
+        "peak_to_average_ratio",
+        "ema_4",
+        "hour",
+        "weekday",
+        "month",
+        "is_weekend",
+        "sin_hour",
+        "cos_hour"
+      ],
+      "test_samples": 160,
+      "metrics": {
+        "MAE": 0.122,
+        "RMSE": 0.15,
+        "R2": 0.9732,
+        "MAPE": 11.71,
+        "WAPE": 8.01
+      }
+    },
+    "price_xgboost": {
+      "target": "effective_cost_per_unit",
+      "model_type": "Gradient Boosted Regression Trees (XGBoost)",
+      "features": [
+        "units_consumed",
+        "previous_reading",
+        "current_reading",
+        "tariff_tier_code",
+        "prev_cycle_units",
+        "consumption_trend",
+        "month",
+        "weekday"
+      ],
+      "test_samples": 20,
+      "metrics": {
+        "MAE": 0.242,
+        "RMSE": 0.427,
+        "R2": 0.9856,
+        "MAPE": 6.49,
+        "WAPE": 4.39
+      }
+    }
+  }
+}

@@ -1,0 +1,50 @@
+name: sems_app
+description: "Smart Energy Management System (SEMS) - AI-driven microgrid & electricity usage monitor for all age groups."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # Networking & State
+  http: ^1.2.1
+  provider: ^6.1.2
+  shared_preferences: ^2.3.2
+
+  # Notifications (Local + FCM ready)
+  flutter_local_notifications: ^17.2.4
+  timezone: ^0.9.4
+
+  # UI, Charts & Icons
+  intl: ^0.20.3
+  fl_chart: ^0.69.0
+  google_fonts: ^6.2.1
+
+  # Accessibility & Voice for Elderly
+  flutter_tts: ^4.0.2
+
+  # Sharing & Export
+  share_plus: ^10.0.2
+  pdf: ^3.11.1
+  printing: ^5.13.2
+  path_provider: ^2.1.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+dependency_overrides:
+  path_provider_android: 2.2.17
+  path_provider_foundation: 2.4.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/

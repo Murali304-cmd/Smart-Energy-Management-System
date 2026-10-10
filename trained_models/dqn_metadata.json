@@ -1,0 +1,45 @@
+{
+  "status": "trained",
+  "model_type": "Deep Q-Network (DQN) - Intelligent SEMS Energy Dispatch Recommender",
+  "training_timestamp": "2026-09-27T11:34:06.442652",
+  "state_dim": 6,
+  "action_dim": 4,
+  "state_features": [
+    "predicted_solar (kW)",
+    "predicted_load (kW)",
+    "electricity_price (\u20b9/kWh)",
+    "battery_soc (%)",
+    "current_load (kW)",
+    "time_peak_indicator (0 or 1)"
+  ],
+  "action_space": {
+    "0": "SOLAR_PRIORITY",
+    "1": "BATTERY_DISPATCH",
+    "2": "GRID_USAGE",
+    "3": "PEAK_SHAVING"
+  },
+  "episodes_trained": 150,
+  "final_epsilon": 0.05,
+  "mean_reward_last_50": 72.0,
+  "action_distribution_counts": {
+    "SOLAR_PRIORITY": 1640,
+    "BATTERY_DISPATCH": 176,
+    "GRID_USAGE": 1006,
+    "PEAK_SHAVING": 628
+  },
+  "action_distribution_percent": {
+    "SOLAR_PRIORITY": 47.5,
+    "BATTERY_DISPATCH": 5.1,
+    "GRID_USAGE": 29.2,
+    "PEAK_SHAVING": 18.2
+  },
+  "battery_constraints_enforced": {
+    "min_soc": 20.0,
+    "max_soc": 100.0,
+    "max_charge_kw": 6.0,
+    "max_discharge_kw": 10.0,
+    "charge_efficiency": 0.95,
+    "discharge_efficiency": 0.95
+  },
+  "model_path": "D:\\Smart Energy Management System\\trained_models\\dqn_energy_recommender.pth"
+}

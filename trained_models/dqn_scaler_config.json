@@ -1,0 +1,28 @@
+{
+  "feature_ranges": {
+    "predicted_solar": [
+      0.0,
+      8.0
+    ],
+    "predicted_load": [
+      0.0,
+      8.0
+    ],
+    "electricity_price": [
+      0.0,
+      15.0
+    ],
+    "battery_soc": [
+      0.0,
+      100.0
+    ],
+    "current_load": [
+      0.0,
+      8.0
+    ],
+    "time_peak_indicator": [
+      0.0,
+      1.0
+    ]
+  }
+}

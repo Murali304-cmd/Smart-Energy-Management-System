@@ -1,0 +1,17 @@
+.git
+.gitignore
+.env
+.idea
+.vscode
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+*.apk
+sems-app.apk
+hs_err_pid*.log
+replay_pid*.log
+scratch_analysis*.json
+tests
+sems_app/build/app

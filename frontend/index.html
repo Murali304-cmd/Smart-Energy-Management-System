@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VERA - Virtual Energy Recommendation Assistant</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- Main Navigation Header -->
+    <header class="app-header">
+        <!-- Tier 1: Main Header Bar (Brand, Navigation, Quick Controls) -->
+        <div class="header-main-bar">
+            <div class="brand-group">
+                <div class="brand-logo">
+                    <span class="logo-icon">⚡</span>
+                    <span class="logo-text">SEMS</span>
+                </div>
+                <div class="brand-titles">
+                    <h1 class="brand-name">Smart Home Energy Management System</h1>
+                    <p class="brand-subtitle" data-i18n="brand_subtitle">Autonomous Microgrid & AI Optimization Platform</p>
+                </div>
+            </div>
+
+            <!-- Header Navigation Tabs -->
+            <nav class="header-nav" aria-label="Main Navigation">
+                <button class="nav-link active" data-tab="tab-dashboard" id="nav-dashboard" data-i18n="nav_dashboard">📊 Dashboard</button>
+                <button class="nav-link" data-tab="tab-usage" id="nav-usage" data-i18n="nav_usage">⚡ Usage & Bill</button>
+                <button class="nav-link" data-tab="tab-compare" id="nav-compare" data-i18n="nav_compare">📊 TNEB Compare</button>
+                <button class="nav-link" data-tab="tab-export" id="nav-export" data-i18n="nav_export">📤 Export & Share</button>
+                <button class="nav-link" data-tab="tab-dataset" id="nav-dataset" data-i18n="nav_dataset">🗄️ Dataset</button>
+                <button class="nav-link" data-tab="tab-history" id="nav-history" data-i18n="nav_history">📈 History</button>
+            </nav>
+
+            <!-- Quick Utility Controls (Neat & Modern Layout) -->
+            <div class="header-quick-tools">
+                <!-- Interactive Notification Center -->
+                <div class="header-notif-wrapper" id="header-notif-wrapper">
+                    <button id="btn-header-alerts" class="icon-btn header-alert-btn" title="System Notifications & Alerts" aria-label="Notifications">
+                        <span class="notif-bell-icon">🔔</span>
+                        <span id="header-alert-badge" class="alert-badge-count" style="display:none;">0</span>
+                    </button>
+                    <!-- Floating Notification Dropdown Center -->
+                    <div id="notification-dropdown" class="notification-dropdown-panel" style="display: none;" role="dialog" aria-label="Notifications Panel">
+                        <div class="notif-dropdown-header">
+                            <div class="notif-title-row">
+                                <span class="notif-header-icon">🔔</span>
+                                <h3>Notifications</h3>
+                                <span id="notif-badge-pill" class="notif-count-pill">0 New</span>
+                            </div>
+                            <button id="btn-mark-all-read" class="btn-mark-read" title="Mark all notifications as read">
+                                <span class="check-icon">✓</span> Mark all read
+                            </button>
+                        </div>
+                        <div id="notif-dropdown-list" class="notif-dropdown-list">
+                            <!-- Populated dynamically via AlertCenterManager -->
+                        </div>
+                        <div class="notif-dropdown-footer">
+                            <button id="btn-dropdown-clear-all" class="btn-dropdown-action btn-danger-subtle">
+                                🗑️ Clear All
+                            </button>
+                            <button id="btn-dropdown-view-all" class="btn-dropdown-action btn-primary-subtle" data-tab="tab-alerts">
+                                Open Alerts Screen ➔
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dark / Light Theme Toggle -->
+                <button id="theme-toggle-btn" class="icon-btn" title="Toggle Dark / Light Mode" aria-label="Toggle Theme">
+                    <span id="theme-icon">🌙</span>
+                </button>
+
+                <!-- Refresh Telemetry Button -->
+                <button id="btn-refresh-data" class="primary-btn pulse-on-click" title="Fetch latest telemetry & recalculate recommendations">
+                    <span class="btn-icon">🔄</span>
+                    <span>Refresh</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tier 2: Real-Time Telemetry & Platform Access Ribbon -->
+        <div class="header-sub-bar">
+            <div class="sub-bar-left">
+                <div class="status-indicator" id="system-status-indicator">
+                    <span class="status-dot online"></span>
+                    <span class="status-text" id="system-status-text">FastAPI Online • SEMS Active</span>
+                </div>
+                <div class="ws-status-badge" id="ws-status-badge" title="WebSocket Telemetry Live Stream">
+                    <span class="ws-dot"></span>
+                    <span>WS Stream Active</span>
+                </div>
+            </div>
+
+            <div class="sub-bar-right">
+                <button onclick="openPipelineVerificationModal()" id="btn-pipeline-verification" class="pipeline-accuracy-pill" title="Verify Proposed System Pipeline & Model Accuracy">
+                    <span class="pipeline-icon">🩺</span>
+                    <span class="pipeline-label">Pipeline & Accuracy</span>
+                </button>
+                <a href="/apk" class="apk-pill-btn" title="Download Android App APK">
+                    <span>📱</span>
+                    <span>Install APK</span>
+                </a>
+                <button onclick="document.getElementById('apk-qr-modal').style.display='flex'" class="platform-link-btn" title="Scan QR Code to install app on Phone">
+                    <span>📲</span>
+                    <span>Phone QR</span>
+                </button>
+                <a href="/app/" target="_blank" class="platform-link-btn" title="Open SEMS Flutter Web App">
+                    <span>🚀</span>
+                    <span>Flutter App</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Tier 3: Real-Time Power Source Dispatch Marquee Ticker -->
+        <div class="top-marquee-container" id="top-marquee-container">
+            <div class="marquee-badge">
+                <span class="marquee-pulse-dot"></span>
+                <span class="marquee-badge-text">⚡ LIVE POWER SOURCE</span>
+            </div>
+            <div class="marquee-viewport">
+                <marquee class="top-power-marquee" id="top-power-marquee" scrollamount="5" onmouseover="this.stop();" onmouseout="this.start();">
+                    <span id="marquee-stream-text">
+                        <strong class="marquee-item marquee-strategy" id="mq-active-system">⚡ SYSTEM USING: 🔋 BATTERY DISCHARGING (2.68 kW) • ZERO GRID DRAW ✓</strong>
+                        <span class="marquee-divider">•</span>
+                        <strong class="marquee-item marquee-load" id="mq-home-load">🏠 HOME LOAD: 2.68 kW [🔋 Battery: 2.68 kW | ☀️ Solar: 0.00 kW | 🔌 Grid: 0.00 kW]</strong>
+                        <span class="marquee-divider">•</span>
+                        <span class="marquee-item marquee-inverter" id="mq-inverter">⚡ HYBRID INVERTER: 2.68 kW Inverting (98.2% Eff)</span>
+                        <span class="marquee-divider">•</span>
+                        <span class="marquee-item marquee-solar" id="mq-solar">☀️ SOLAR PV: 0.00 kW</span>
+                        <span class="marquee-divider">•</span>
+                        <span class="marquee-item marquee-battery" id="mq-battery">🔋 BATTERY: Discharging 2.68 kW (SOC: 45.5%)</span>
+                        <span class="marquee-divider">•</span>
+                        <span class="marquee-item marquee-grid" id="mq-grid">🔌 EB UTILITY GRID: 0.00 kW (Zero Draw ✓)</span>
+                        <span class="marquee-divider">•</span>
+                        <span class="marquee-item marquee-savings" id="mq-savings">🌿 Clean Energy Savings: ₹ 45.20 Today</span>
+                    </span>
+                </marquee>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="app-main">
+        <!-- Tab 1: Main Dashboard -->
+        <section id="tab-dashboard" class="tab-pane active">
+            <!-- Executive Real-Time Status Bar -->
+            <div class="executive-status-bar" id="executive-status-bar">
+                <div class="exec-bar-left">
+                    <div class="exec-clock-chip">
+                        <span class="clock-icon">🕒</span>
+                        <span id="dash-live-clock" class="clock-text">--:--:-- --</span>
+                    </div>
+                    <div class="exec-badge badge-grid-limit" title="Contracted Sanctioned Demand Limit">
+                        <span class="badge-dot dot-cyan"></span>
+                        <span>Sanctioned Load: <strong>5.00 kW</strong></span>
+                    </div>
+                    <div class="exec-badge badge-tneb" id="dash-tneb-slab" title="Current TANGEDCO LT-IA Telescopic Slab">
+                        <span class="badge-dot dot-emerald"></span>
+                        <span>TNEB LT-IA: Tier 2 (₹4.70/kWh)</span>
+                    </div>
+                </div>
+                <div class="exec-bar-right">
+                    <span class="system-health-pill health-optimal" id="system-health-pill">⚡ Microgrid Optimal</span>
+                </div>
+            </div>
+
+
+            <!-- SEMS Mobile-Parity: Daily Cost & Units Used Banner -->
+            <div class="daily-cost-banner" id="sems-daily-cost-banner">
+                <div class="daily-cost-banner-header">
+                    <div class="banner-title-group">
+                        <div class="banner-icon-badge">⚡</div>
+                        <span class="banner-cost-label" id="sems-banner-cost-label" data-i18n="banner_cost_title">Estimated Cost (Today)</span>
+                    </div>
+                    <div class="banner-speaker-group">
+                        <div class="voice-waveform" id="voice-waveform" title="Web Speech Audio Waveform Equalizer">
+                            <span class="wave-bar"></span>
+                            <span class="wave-bar"></span>
+                            <span class="wave-bar"></span>
+                            <span class="wave-bar"></span>
+                            <span class="wave-bar"></span>
+                        </div>
+                        <!-- Web Speech API Speaker Button -->
+                        <button class="voice-speaker-btn" id="sems-voice-speaker-btn" title="Read summary aloud in English or Tamil">
+                            📢 <span data-i18n="voice_speak">Read Out Loud</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="daily-cost-main-row">
+                    <span class="banner-cost-amount" id="sems-banner-cost-val">₹ 28.50</span>
+                    <span class="banner-cost-period">/ 1 Day</span>
+                </div>
+                <div class="daily-cost-divider"></div>
+                <div class="daily-cost-footer-row">
+                    <div class="banner-metric-col">
+                        <h5 id="sems-banner-units-label" data-i18n="banner_units_title">Units Used Today</h5>
+                        <div class="banner-metric-val" id="sems-banner-units-val">14.20 Units</div>
+                    </div>
+                    <div class="banner-metric-col">
+                        <h5>☀️ Clean Energy Index</h5>
+                        <div class="banner-metric-val banner-cei-val" id="sems-banner-cei-val">85.4% Solar</div>
+                    </div>
+                    <div class="banner-metric-col">
+                        <h5>🔋 Est. Backup Storage</h5>
+                        <div class="banner-metric-val banner-backup-val" id="sems-banner-backup-val">8.5 Hours</div>
+                    </div>
+                    <div class="banner-metric-col" style="text-align: right;">
+                        <h5 id="sems-banner-saved-label" data-i18n="banner_savings_title">Saved via Solar & Battery</h5>
+                        <div class="banner-metric-val banner-savings-val" id="sems-banner-saved-val">₹ 45.20</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hero DQN Recommendation Card -->
+            <div class="hero-card" id="hero-recommendation-card">
+                <div class="hero-left">
+                    <div class="hero-tag">
+                        <span class="tag-icon">🤖</span>
+                        <span>Stage 4: DQN Hybrid Smart Energy Recommendation</span>
+                    </div>
+                    <h2 class="hero-strategy" id="hero-strategy-title">☀️ SOLAR + 🔋 BATTERY + ⚡ GRID</h2>
+                    <p class="hero-summary" id="hero-decision-summary">
+                        Solar supplied 4.00 kW of the demand, the battery supplied 1.50 kW for the remaining demand, and grid usage was limited to the final 0.50 kW backup.
+                    </p>
+                    <div class="energy-balance-badge" id="hero-balance-badge">
+                        <span class="badge-icon">✓</span>
+                        <span id="hero-balance-text">Energy Balance Verified: 4.0 + 1.5 + 0.5 = 6.0 kW</span>
+                    </div>
+                </div>
+                <div class="hero-right">
+                    <div class="hero-metric-box">
+                        <span class="metric-label">Estimated Grid Cost</span>
+                        <span class="metric-val" id="hero-cost-val">₹ 0.59</span>
+                        <span class="budget-status-pill status-within" id="hero-budget-status">Within Budget</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Status KPI Grid -->
+            <div class="kpi-grid">
+                <div class="kpi-card card-solar">
+                    <div class="kpi-header">
+                        <span class="kpi-title">☀️ Solar Generation (MLP)</span>
+                        <span class="kpi-icon">☀️</span>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-num" id="kpi-solar-num">4.00 <span class="kpi-unit">kW</span></div>
+                        <div class="kpi-desc" id="kpi-solar-desc">Available PV Irradiance: 850 W/m²</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card card-load">
+                    <div class="kpi-header">
+                        <span class="kpi-title">🏠 Household Demand (LSTM)</span>
+                        <span class="kpi-icon">⚡</span>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-num" id="kpi-load-num">6.00 <span class="kpi-unit">kW</span></div>
+                        <div class="kpi-desc" id="kpi-load-desc">Active Target Load: 6.00 kW</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card card-battery">
+                    <div class="kpi-header">
+                        <span class="kpi-title">🔋 Battery SOC</span>
+                        <span class="kpi-icon">🔋</span>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-num" id="kpi-battery-num">75% <span class="kpi-unit">(550.0 kWh usable)</span></div>
+                        <div class="kpi-desc" id="kpi-battery-desc">Sungrow PowerTitan: 1,000 kWh BESS (500 kW PCS)</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card card-price">
+                    <div class="kpi-header">
+                        <span class="kpi-title">💰 TNEB Tariff (XGBoost)</span>
+                        <span class="kpi-icon">₹</span>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-num" id="kpi-price-num">₹ 4.70 <span class="kpi-unit">/ kWh</span></div>
+                        <div class="kpi-desc" id="kpi-price-desc">Grid Sourced: 0.50 kW (8.3% share)</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card card-weather">
+                    <div class="kpi-header">
+                        <span class="kpi-title">🌡️ Weather Telemetry</span>
+                        <span class="kpi-icon">🌤️</span>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-num" id="kpi-weather-num">30.5°C <span class="kpi-unit">| 60% Hum</span></div>
+                        <div class="kpi-desc" id="kpi-weather-desc">OpenWeather Live Ground Readings</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card card-budget">
+                    <div class="kpi-header">
+                        <span class="kpi-title">💵 User Budget Tracker</span>
+                        <span class="kpi-icon">📊</span>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-num" id="kpi-budget-num">₹ 24.41 <span class="kpi-unit">Remaining</span></div>
+                        <div class="kpi-desc" id="kpi-budget-desc">Hourly Budget: ₹ 25.00 | Cost: ₹ 0.59</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visual Energy Flow & Allocation Section -->
+            <div class="dashboard-split-grid">
+                <!-- Energy Flow Diagram Card -->
+                <div class="card flow-card">
+                    <div class="card-header-clean">
+                        <h3>⚡ Dynamic Energy Flow Architecture</h3>
+                        <span class="header-sub">Real-time multi-source power routing to home appliances</span>
+                    </div>
+
+                    <div class="flow-diagram-container hub-layout-container" id="hub-diagram-container">
+                        <!-- Top-Right Play/Pause Control Button -->
+                        <button class="flow-playback-btn" id="flow-pause-btn" title="Toggle Flow Animation" onclick="window.toggleFlowAnimation && window.toggleFlowAnimation()">
+                            <span id="flow-playback-icon">❚❚</span>
+                        </button>
+
+                        <!-- Underlying Full SVG Layer for Smooth S-Curves and Particle Orbs -->
+                        <svg class="hub-flow-svg" viewBox="0 0 800 360" preserveAspectRatio="none" id="hub-flow-svg-elem">
+                            <defs>
+                                <filter id="glow-solar" x="-50%" y="-50%" width="200%" height="200%">
+                                    <feGaussianBlur stdDeviation="3.5" result="blur" />
+                                    <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                                </filter>
+                                <filter id="glow-battery" x="-50%" y="-50%" width="200%" height="200%">
+                                    <feGaussianBlur stdDeviation="3.5" result="blur" />
+                                    <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                                </filter>
+                                <filter id="glow-load" x="-50%" y="-50%" width="200%" height="200%">
+                                    <feGaussianBlur stdDeviation="3.5" result="blur" />
+                                    <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                                </filter>
+                                <filter id="glow-grid" x="-50%" y="-50%" width="200%" height="200%">
+                                    <feGaussianBlur stdDeviation="3.5" result="blur" />
+                                    <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                                </filter>
+                            </defs>
+
+                            <!-- Base Track Dashed Lines (Always visible faint guide tracks) -->
+                            <path class="hub-pipe-track" d="M 190,80 C 265,80 265,160 335,160" />
+                            <path class="hub-pipe-track" d="M 190,280 C 265,280 265,200 335,200" />
+                            <path class="hub-pipe-track" d="M 465,160 C 535,160 535,80 610,80" />
+                            <path class="hub-pipe-track" d="M 465,200 C 535,200 535,280 610,280" />
+
+                            <!-- Dynamic Animated Active Energy Pipes -->
+                            <!-- 1. Solar -> Inverter Hub (Cyan dashed) -->
+                            <path id="pipe-solar" class="hub-pipe pipe-solar-active" d="M 190,80 C 265,80 265,160 335,160" />
+
+                            <!-- 2. Battery <-> Inverter Hub (Green dashed) -->
+                            <path id="pipe-battery" class="hub-pipe pipe-battery-active" d="M 190,280 C 265,280 265,200 335,200" />
+
+                            <!-- 3. Inverter Hub -> Home Load (Coral Red dashed) -->
+                            <path id="pipe-inverter-load" class="hub-pipe pipe-load-active" d="M 465,160 C 535,160 535,80 610,80" />
+
+                            <!-- 4. Inverter Hub <-> Utility Grid (Purple dashed) -->
+                            <path id="pipe-grid" class="hub-pipe pipe-grid-active" d="M 465,200 C 535,200 535,280 610,280" />
+
+                            <!-- Beautiful Glowing Animated Particles Streaming Along the Curves -->
+                            <!-- Solar Particles -->
+                            <circle id="particle-solar" r="4.5" fill="#38BDF8" filter="url(#glow-solar)" class="flow-particle-orb">
+                                <animateMotion dur="1.4s" repeatCount="indefinite" path="M 190,80 C 265,80 265,160 335,160" />
+                            </circle>
+                            <circle id="particle-solar-aux" r="3.5" fill="#bae6fd" filter="url(#glow-solar)" class="flow-particle-orb">
+                                <animateMotion dur="1.4s" begin="0.7s" repeatCount="indefinite" path="M 190,80 C 265,80 265,160 335,160" />
+                            </circle>
+
+                            <!-- Battery Particles -->
+                            <circle id="particle-battery" r="5" fill="#10B981" filter="url(#glow-battery)" class="flow-particle-orb">
+                                <animateMotion dur="1.3s" repeatCount="indefinite" path="M 190,280 C 265,280 265,200 335,200" />
+                            </circle>
+                            <circle id="particle-battery-aux" r="4" fill="#6ee7b7" filter="url(#glow-battery)" class="flow-particle-orb">
+                                <animateMotion dur="1.3s" begin="0.65s" repeatCount="indefinite" path="M 190,280 C 265,280 265,200 335,200" />
+                            </circle>
+
+                            <!-- Home Load Particles -->
+                            <circle id="particle-inverter-load" r="5" fill="#F43F5E" filter="url(#glow-load)" class="flow-particle-orb">
+                                <animateMotion dur="1.1s" repeatCount="indefinite" path="M 465,160 C 535,160 535,80 610,80" />
+                            </circle>
+                            <circle id="particle-load-aux" r="4" fill="#fda4af" filter="url(#glow-load)" class="flow-particle-orb">
+                                <animateMotion dur="1.1s" begin="0.55s" repeatCount="indefinite" path="M 465,160 C 535,160 535,80 610,80" />
+                            </circle>
+
+                            <!-- Utility Grid Particles -->
+                            <circle id="particle-grid" r="4.5" fill="#A855F7" filter="url(#glow-grid)" class="flow-particle-orb">
+                                <animateMotion dur="1.5s" repeatCount="indefinite" path="M 465,200 C 535,200 535,280 610,280" />
+                            </circle>
+                            <circle id="particle-grid-aux" r="3.5" fill="#e9d5ff" filter="url(#glow-grid)" class="flow-particle-orb">
+                                <animateMotion dur="1.5s" begin="0.75s" repeatCount="indefinite" path="M 465,200 C 535,200 535,280 610,280" />
+                            </circle>
+                        </svg>
+
+                        <!-- Node Elements Laid Out in 3-Columns (Symmetrical & Scalable) -->
+                        <div class="hub-nodes-overlay">
+                            <!-- Left Column: Solar Panel (top) & Battery (bottom) -->
+                            <div class="hub-col hub-col-left">
+                                <!-- Solar Panel Node (Bright Blue Card with Solar PV Wafer Grid Pattern) -->
+                                <div class="hub-card hub-card-solar" id="flow-node-solar">
+                                    <div class="hub-card-header">
+                                        <span class="hub-card-title">Solar Panel</span>
+                                    </div>
+                                    <div class="hub-card-value-row">
+                                        <strong class="hub-card-val" id="flow-val-solar">1.5 kW</strong>
+                                    </div>
+                                    <span class="hub-card-sub" id="flow-pct-solar">0.0% to Inverter</span>
+                                </div>
+
+                                <!-- Battery Node (Vibrant Green Card with Horizontal Battery Gauge) -->
+                                <div class="hub-card hub-card-battery" id="flow-node-battery">
+                                    <div class="hub-card-header">
+                                        <span class="hub-card-title">Battery</span>
+                                    </div>
+                                    <div class="hub-battery-gauge-wrap">
+                                        <div class="hub-battery-capsule">
+                                            <div class="hub-battery-fill" id="hub-battery-fill" style="width: 82%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="hub-card-value-row">
+                                        <strong class="hub-card-val" id="flow-val-battery">-5.0 kW</strong>
+                                    </div>
+                                    <span class="hub-card-sub" id="flow-pct-battery">82% SOC (Discharging)</span>
+                                </div>
+                            </div>
+
+                            <!-- Center Column: Inverter Hub (Compact, Unique Squircle with Glowing Indicator) -->
+                            <div class="hub-col hub-col-center">
+                                <div class="hub-card-inverter active" id="flow-node-inverter">
+                                    <div class="hub-led-socket">
+                                        <div class="hub-led-dot" id="inverter-center-icon"></div>
+                                    </div>
+                                    <h4 class="hub-inverter-title">Inverter Hub</h4>
+                                    <span class="hub-inverter-sub">Smart Router</span>
+                                    <div class="hub-inverter-meter">
+                                        <strong class="hub-inverter-kw" id="flow-val-inverter">2.68 kW</strong>
+                                        <span class="hub-inverter-eff" id="flow-eff-inverter">98.2% Eff</span>
+                                    </div>
+                                    <div class="hub-inverter-badge" id="inverter-feed-badge">Active Bi-Directional</div>
+                                </div>
+                            </div>
+
+                            <!-- Right Column: Home Load (top) & Utility Grid (bottom) -->
+                            <div class="hub-col hub-col-right">
+                                <!-- Home Load Node (Vibrant Crimson / Coral Red Card) -->
+                                <div class="hub-card hub-card-load" id="flow-node-demand">
+                                    <div class="hub-card-header">
+                                        <span class="hub-card-title">Home Load</span>
+                                    </div>
+                                    <div class="hub-card-value-row">
+                                        <strong class="hub-card-val" id="flow-val-demand">6.8 kW</strong>
+                                    </div>
+                                    <span class="hub-card-sub" id="flow-dest-status">✓ 100% Demand Met</span>
+                                </div>
+
+                                <!-- Utility Grid Node (Vibrant Royal Purple Card) -->
+                                <div class="hub-card hub-card-grid" id="flow-node-grid">
+                                    <div class="hub-card-header">
+                                        <span class="hub-card-title">Utility Grid</span>
+                                    </div>
+                                    <div class="hub-card-value-row">
+                                        <strong class="hub-card-val" id="flow-val-grid">-0.3 kW</strong>
+                                    </div>
+                                    <span class="hub-card-sub" id="flow-pct-grid">Zero Grid Draw ✓</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Source Contribution Doughnut Chart Card -->
+                <div class="card chart-card">
+                    <div class="card-header-clean">
+                        <h3>📊 Energy Source Contribution</h3>
+                        <span class="header-sub">Dispatch ratio determined by Stage 4 DQN policy</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chart-source-contribution"></canvas>
+                    </div>
+                    <div class="chart-legend-custom">
+                        <div class="legend-item"><span class="legend-dot dot-solar"></span> Solar: <strong id="legend-solar-pct">66.7%</strong></div>
+                        <div class="legend-item"><span class="legend-dot dot-battery"></span> Battery: <strong id="legend-battery-pct">25.0%</strong></div>
+                        <div class="legend-item"><span class="legend-dot dot-grid"></span> Grid: <strong id="legend-grid-pct">8.3%</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- XAI Section in Dashboard -->
+            <div class="card xai-dash-card">
+                <div class="card-header-clean">
+                    <div class="header-icon-group">
+                        <span class="section-icon">💡</span>
+                        <div>
+                            <h3>Why did VERA choose this strategy?</h3>
+                            <span class="header-sub">Stage 5: Explainable AI (XAI) transparent decision reasoning</span>
+                        </div>
+                    </div>
+                    <span class="xai-status-pill" id="xai-validation-status">✓ Energy Balance Verified</span>
+                </div>
+
+                <div class="xai-content-grid">
+                    <div class="xai-main-explanation">
+                        <div class="xai-highlight-box" id="xai-decision-summary-box">
+                            <strong>Decision Summary:</strong>
+                            <p id="xai-summary-text">Solar supplied 4.00 kW of the demand, the battery supplied 1.50 kW for the remaining demand, and grid usage was limited to the final 0.50 kW backup.</p>
+                        </div>
+
+                        <div class="xai-sub-explanations">
+                            <div class="xai-sub-item">
+                                <span class="sub-item-icon">☀️</span>
+                                <div>
+                                    <strong>Solar Attribution:</strong>
+                                    <p id="xai-solar-text">Solar was prioritized because renewable generation was available.</p>
+                                </div>
+                            </div>
+                            <div class="xai-sub-item">
+                                <span class="sub-item-icon">🔋</span>
+                                <div>
+                                    <strong>Battery Attribution:</strong>
+                                    <p id="xai-battery-text">Solar could not fully satisfy demand, so the battery supplied 1.50 kW.</p>
+                                </div>
+                            </div>
+                            <div class="xai-sub-item">
+                                <span class="sub-item-icon">⚡</span>
+                                <div>
+                                    <strong>Grid Attribution:</strong>
+                                    <p id="xai-grid-text">After Solar and Battery supplied 5.50 kW, 0.50 kW remained. The grid supplied this residual demand as backup.</p>
+                                </div>
+                            </div>
+                            <div class="xai-sub-item">
+                                <span class="sub-item-icon">💰</span>
+                                <div>
+                                    <strong>Budget Compliance:</strong>
+                                    <p id="xai-budget-text">Estimated grid cost (₹0.59) is within the user's configured budget (₹25.00).</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Key Decision Factors Sidebar -->
+                    <div class="xai-factors-sidebar">
+                        <h4>🎯 Key Decision Factors</h4>
+                        <ul class="factors-list" id="xai-factors-list">
+                            <li><span class="factor-check">✓</span> Predicted solar generation (4.00 kW)</li>
+                            <li><span class="factor-check">✓</span> Predicted household demand (6.00 kW)</li>
+                            <li><span class="factor-check">✓</span> Battery SOC (70.0%)</li>
+                            <li><span class="factor-check">✓</span> Predicted electricity cost (₹4.70/kWh)</li>
+                            <li><span class="factor-check">✓</span> User budget (₹25.00)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collapsible Technical Details -->
+            <div class="card collapsible-card" id="tech-details-card">
+                <button class="collapsible-toggle" id="btn-toggle-tech">
+                    <span>🛠️ Technical Details & DQN Diagnostics</span>
+                    <span class="toggle-icon">▼</span>
+                </button>
+                <div class="collapsible-content" id="tech-content-pane">
+                    <div class="tech-grid">
+                        <div class="tech-col">
+                            <h4>📋 6-Dimensional State Vector $s_t$</h4>
+                            <table class="tech-table" id="table-state-vector">
+                                <thead>
+                                    <tr><th>Feature</th><th>Value</th><th>Role</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>Predicted Solar</td><td id="tech-s1">4.00 kW</td><td>Renewable input</td></tr>
+                                    <tr><td>Predicted Load</td><td id="tech-s2">6.00 kW</td><td>Core target</td></tr>
+                                    <tr><td>Predicted Price</td><td id="tech-s3">₹ 4.70 / kWh</td><td>Tariff rate</td></tr>
+                                    <tr><td>Battery SOC</td><td id="tech-s4">70.0 %</td><td>Discharge ready</td></tr>
+                                    <tr><td>User Demand</td><td id="tech-s5">6.00 kW</td><td>Appliance load</td></tr>
+                                    <tr><td>User Budget</td><td id="tech-s6">₹ 25.00</td><td>Cost ceiling</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="tech-col">
+                            <h4>🎯 DQN Q-Values (Policy Valuation)</h4>
+                            <p class="tech-note">Model expected cumulative returns across discrete action configurations:</p>
+                            <div class="tech-q-grid" id="tech-q-grid">
+                                <div class="tech-q-item active"><strong>Action 0 (PRIORITY_HYBRID):</strong> <span id="tech-q0">10.20</span></div>
+                                <div class="tech-q-item"><strong>Action 1 (BATTERY_CONSERVATION):</strong> <span id="tech-q1">5.10</span></div>
+                                <div class="tech-q-item"><strong>Action 2 (PEAK_SHAVING):</strong> <span id="tech-q2">2.00</span></div>
+                                <div class="tech-q-item"><strong>Action 3 (GRID_MINIMIZE):</strong> <span id="tech-q3">8.40</span></div>
+                            </div>
+                            <div class="tech-json-box">
+                                <h5>Raw API Response Payload:</h5>
+                                <pre><code id="raw-json-viewer">Loading...</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </section>
+
+        <!-- SECTION 2: USAGE & BILL ANALYTICS -->
+        <section id="tab-usage" class="tab-pane">
+            <div class="section-title-bar">
+                <div class="title-with-pill">
+                    <h2>⚡ Usage &amp; Bill Analytics</h2>
+                    <span class="engine-badge">Real-Time Consumption &amp; Appliance Energy Audit</span>
+                </div>
+                <div class="month-selector-badge">
+                    <span id="hourly-notif-countdown" class="countdown-badge">Next Alert: in --m --s</span>
+                </div>
+            </div>
+
+            <!-- Usage Gauges & Tariff Timeline Grid -->
+            <!-- Usage Gauges & Tariff Timeline Grid (Neat & Clear Symmetrical Boxes) -->
+            <div class="dashboard-split-grid" style="align-items: stretch; margin-bottom: 24px;">
+                <!-- Box 1: Daily Energy Consumption Target Gauge Card -->
+                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0;">
+                    <div>
+                        <div class="card-header-clean">
+                            <div>
+                                <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); margin: 0;">🎯 Daily Energy Target Gauge</h3>
+                                <span class="header-sub">Consumption tracking against 30.0 kWh daily household target</span>
+                            </div>
+                            <span class="gauge-legend-badge" id="svg-gauge-slab-pill">Slab 2 @ ₹4.70 / Unit</span>
+                        </div>
+
+                        <!-- Circular Gauge Center -->
+                        <div style="display: flex; align-items: center; justify-content: center; padding: 18px 0; position: relative;">
+                            <div style="width: 170px; height: 170px; position: relative;">
+                                <svg viewBox="0 0 160 160" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+                                    <circle cx="80" cy="80" r="68" class="gauge-bg-circle"></circle>
+                                    <circle cx="80" cy="80" r="68" id="svg-gauge-progress" class="gauge-progress-circle"></circle>
+                                </svg>
+                                <div class="circular-gauge-center">
+                                    <span class="gauge-center-num" id="svg-gauge-val">14.2</span>
+                                    <span class="gauge-center-unit">Units (kWh)</span>
+                                    <span class="gauge-center-target">Target: 30 kWh</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar & Labels -->
+                        <div style="padding: 0 4px; margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px;">
+                                <span id="usage-gauge-units">14.2 / 30 Units</span>
+                                <span id="usage-gauge-rate" style="color: #0284c7;">Rate: ₹4.70 / Unit</span>
+                            </div>
+                            <div style="width: 100%; height: 8px; background: rgba(100,116,139,0.15); border-radius: 4px; overflow: hidden;">
+                                <div id="usage-gauge-fill" style="width: 47%; height: 100%; background: #10b981; transition: width 0.4s ease;"></div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;" id="usage-gauge-slab">Active Slab: Slab 2 (101-400 Units @ ₹4.70)</div>
+                        </div>
+                    </div>
+
+                    <!-- 3 Neat Metric Mini-Boxes at Bottom -->
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+                        <div style="background: var(--bg-card-subtle); padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
+                            <div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Headroom</div>
+                            <div style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; margin-top: 2px;" id="usage-gauge-headroom">15.8 u</div>
+                        </div>
+                        <div style="background: var(--bg-card-subtle); padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
+                            <div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Run Rate</div>
+                            <div style="font-size: 1.05rem; font-weight: 800; color: #0284c7; font-family: 'JetBrains Mono', monospace; margin-top: 2px;" id="usage-gauge-runrate">₹ 4.70</div>
+                        </div>
+                        <div style="background: var(--bg-card-subtle); padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); text-align: center;">
+                            <div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Status</div>
+                            <div style="font-size: 0.95rem; font-weight: 800; color: #16a34a; margin-top: 3px;" id="usage-gauge-status">Safe 47%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Box 2: 24-Hour Tariff Heatmap & Telemetry Lookahead Card -->
+                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0;">
+                    <div>
+                        <div class="card-header-clean">
+                            <div>
+                                <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); margin: 0;">🕒 24-Hour Time-of-Day Tariff Heatmap</h3>
+                                <span class="header-sub">Dynamic pricing periods &amp; solar generation windows</span>
+                            </div>
+                        </div>
+                        <p class="timeline-desc" style="margin-bottom: 12px; font-size: 0.82rem; color: var(--text-muted);">
+                            Hourly tariff slots under TANGEDCO LT-IA. Current hour is highlighted with active border.
+                        </p>
+                        
+                        <!-- Timeline Hour Ribbon -->
+                        <div class="tariff-timeline-bar" id="tariff-timeline-bar" style="margin-bottom: 12px;">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+
+                        <!-- Color Legend -->
+                        <div class="timeline-legend" style="margin-bottom: 16px;">
+                            <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #10b981; border-radius: 2px;"></span> Off-Peak Base (₹4.70)</div>
+                            <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #f59e0b; border-radius: 2px;"></span> Peak Solar (Free)</div>
+                            <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 12px; background: #ef4444; border-radius: 2px;"></span> Evening Peak Tariff</div>
+                        </div>
+                    </div>
+
+                    <!-- Past 1-Hour vs Next 1-Hour Neat Side-by-Side Boxes -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+                        <div style="background: var(--bg-card-subtle); padding: 14px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.74rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Past 1-Hour Actuals</span>
+                                <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></span>
+                            </div>
+                            <div style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin: 6px 0 2px 0; font-family: 'JetBrains Mono', monospace;"><span id="val-1h-used-kwh">1.45</span> kWh</div>
+                            <div style="font-size: 0.8rem; font-weight: 600; color: #10b981;" id="val-1h-used-cost">₹ 6.82 • Solar: <span id="val-1h-used-solar">1.20 kWh</span></div>
+                        </div>
+
+                        <div style="background: var(--bg-card-subtle); padding: 14px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.74rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Next 1-Hour AI Forecast</span>
+                                <span style="width: 8px; height: 8px; background: #0284c7; border-radius: 50%;"></span>
+                            </div>
+                            <div style="font-size: 1.35rem; font-weight: 800; color: #0284c7; margin: 6px 0 2px 0; font-family: 'JetBrains Mono', monospace;"><span id="val-1h-pred-kwh">1.62</span> kWh</div>
+                            <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);" id="val-1h-pred-cost">₹ 7.61 (Confidence: <span id="val-1h-pred-conf">94.2%</span>)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Middle Split Grid: Live Smart Energy Receipt (Left) + Historical Dispatch Analytics (Right) -->
+            <div class="usage-analytics-split-grid">
+                <!-- Left: SEMS SMART ENERGY RECEIPT Card -->
+                <div class="receipt-card-container">
+                    <div>
+                        <div class="receipt-header">
+                            <div>
+                                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: #0284c7;">⚡ SEMS SMART ENERGY RECEIPT</h3>
+                                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Autonomous IoT Microgrid Platform</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">BILLING DATE</div>
+                                <div id="export-receipt-date" style="font-weight: 800; font-size: 0.95rem; color: var(--text-primary); font-family: 'JetBrains Mono', monospace;">10/10/2026</div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 8px; margin: 16px 0;">
+                            <div class="receipt-row">
+                                <span style="font-weight: 600; color: var(--text-secondary);">Total Gross Energy Demand:</span>
+                                <strong id="export-units-gross" style="font-family: 'JetBrains Mono', monospace; font-size: 1rem;">14.20 Units</strong>
+                            </div>
+                            <div class="receipt-row" style="color: #f59e0b;">
+                                <span style="font-weight: 600;">☀️ Solar PV Direct Offset:</span>
+                                <strong id="export-units-solar" style="font-family: 'JetBrains Mono', monospace; font-size: 1rem;">- 8.10 Units</strong>
+                            </div>
+                            <div class="receipt-row" style="color: #10b981;">
+                                <span style="font-weight: 600;">🔋 Battery ESS Discharge Offset:</span>
+                                <strong id="export-units-batt" style="font-family: 'JetBrains Mono', monospace; font-size: 1rem;">- 3.20 Units</strong>
+                            </div>
+                            <div class="receipt-row" style="color: #0284c7;">
+                                <span style="font-weight: 600;">⚡ Utility Grid Energy Imported:</span>
+                                <strong id="export-units-grid" style="font-family: 'JetBrains Mono', monospace; font-size: 1rem;">2.90 Units</strong>
+                            </div>
+                            <div class="receipt-row" style="border-top: 1px dashed var(--border-color); padding-top: 10px; margin-top: 4px;">
+                                <span style="font-weight: 600; color: var(--text-secondary);">TNEB Tariff Tier Applied:</span>
+                                <strong id="export-applied-slab" style="font-size: 0.9rem; color: var(--text-primary);">Slab 2 (101-400 Units @ ₹4.70)</strong>
+                            </div>
+                        </div>
+
+                        <div class="receipt-total-row" style="display: flex; justify-content: space-between; align-items: center; padding-top: 14px;">
+                            <span style="font-size: 1.05rem; font-weight: 700;">Total Net Electricity Cost:</span>
+                            <span id="export-final-cost" style="font-size: 1.35rem; font-weight: 900; color: #0284c7; font-family: 'JetBrains Mono', monospace;">₹ 13.63</span>
+                        </div>
+                        <div id="export-final-saved" style="text-align: center; margin-top: 12px; font-weight: 800; color: #10b981; font-size: 0.95rem; background: rgba(16, 185, 129, 0.1); padding: 8px 12px; border-radius: var(--radius-sm);">
+                            Net Savings Today: ₹ 53.17
+                        </div>
+                    </div>
+
+                    <div class="export-actions" style="margin-top: 20px;">
+                        <button id="btn-share-whatsapp" class="btn-whatsapp" style="flex: 1; font-size: 0.88rem; padding: 10px 14px;">📲 Share via WhatsApp</button>
+                        <button id="btn-print-receipt" class="action-btn" style="flex: 1; background: #0284c7; color: #fff; padding: 10px 14px; border: none; font-weight: 700; border-radius: var(--radius-md); cursor: pointer; font-size: 0.88rem;">
+                            🖨️ Download / Print PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right: Historical Energy Dispatch & Cost Analytics Card -->
+                <div class="card" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div class="card-header-clean" style="margin-bottom: 12px;">
+                            <div>
+                                <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); margin: 0;">📈 Historical Energy Dispatch &amp; Cost Analytics</h3>
+                                <span class="header-sub">Ground-truth historical records from SQLite database &amp; telemetry</span>
+                            </div>
+                            <div class="period-btn-group" role="group" aria-label="History Period Selector">
+                                <button class="period-btn active" data-period="today">Today (24h)</button>
+                                <button class="period-btn" data-period="7days">Last 7 Days</button>
+                                <button class="period-btn" data-period="30days">Last 30 Days</button>
+                            </div>
+                        </div>
+
+                        <!-- Chart Canvas Wrapper -->
+                        <div style="position: relative; width: 100%; height: 260px;">
+                            <canvas id="chart-history-series"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Dispatch Curve Legend Indicators -->
+                    <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 8px; padding-top: 12px; margin-top: 10px; border-top: 1px solid var(--border-color); font-size: 0.78rem; font-weight: 700;">
+                        <span style="display: flex; align-items: center; gap: 5px; color: #d97706;"><span style="width: 10px; height: 10px; background: #d97706; border-radius: 2px;"></span> Solar Gen (kW)</span>
+                        <span style="display: flex; align-items: center; gap: 5px; color: #2563eb;"><span style="width: 10px; height: 10px; background: #2563eb; border-radius: 2px;"></span> Household Demand (kW)</span>
+                        <span style="display: flex; align-items: center; gap: 5px; color: #10b981;"><span style="width: 10px; height: 10px; background: #10b981; border-radius: 2px;"></span> Battery Dispatch (kW)</span>
+                        <span style="display: flex; align-items: center; gap: 5px; color: #64748b;"><span style="width: 10px; height: 10px; background: #64748b; border-radius: 2px;"></span> Grid Backup (kW)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Card: Monthly Bill History & Official TNEB LT-IA Ledger Table -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header-clean" style="margin-bottom: 16px;">
+                    <div>
+                        <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin: 0;">📑 Monthly Bill History &amp; Official TNEB LT-IA Ledger</h3>
+                        <span class="header-sub">Bi-Monthly Domestic Billing Cycles, Self-Consumption % &amp; Real-Time Cost Analysis</span>
+                    </div>
+                    <span class="gauge-legend-badge" style="background: rgba(16, 185, 129, 0.12); color: #059669;">TANGEDCO Domestic LT-IA</span>
+                </div>
+
+                <!-- 4 Real-Time Analytics Quick Cards -->
+                <div class="ledger-summary-grid">
+                    <div class="ledger-summary-card">
+                        <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">60-Day Projected Demand</span>
+                        <div style="font-size: 1.3rem; font-weight: 800; color: var(--text-primary); font-family: 'JetBrains Mono', monospace;" id="monthly-proj-units">342.5 kWh</div>
+                        <span style="font-size: 0.75rem; color: #10b981; font-weight: 600;">Pacing safe within Slab 2</span>
+                    </div>
+                    <div class="ledger-summary-card">
+                        <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Projected Bi-Monthly Bill</span>
+                        <div style="font-size: 1.3rem; font-weight: 800; color: #0284c7; font-family: 'JetBrains Mono', monospace;" id="monthly-proj-bill">₹ 485.20</div>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">vs Grid Base ₹ 1,778.00</span>
+                    </div>
+                    <div class="ledger-summary-card">
+                        <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Solar Self-Sufficiency</span>
+                        <div style="font-size: 1.3rem; font-weight: 800; color: #d97706; font-family: 'JetBrains Mono', monospace;" id="monthly-proj-solar-pct">78.4%</div>
+                        <span style="font-size: 0.75rem; color: #d97706; font-weight: 600;">High Clean Energy Share</span>
+                    </div>
+                    <div class="ledger-summary-card">
+                        <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Cumulative Savings Saved</span>
+                        <div style="font-size: 1.3rem; font-weight: 800; color: #16a34a; font-family: 'JetBrains Mono', monospace;" id="monthly-proj-savings">₹ 1,292.80</div>
+                        <span style="font-size: 0.75rem; color: #16a34a; font-weight: 600;">72.7% Reduction</span>
+                    </div>
+                </div>
+
+                <!-- Ledger Table Wrap -->
+                <div class="ledger-table-wrap">
+                    <table class="ledger-table">
+                        <thead>
+                            <tr>
+                                <th>Billing Cycle</th>
+                                <th>Gross Demand</th>
+                                <th>Solar Offset</th>
+                                <th>Battery Offset</th>
+                                <th>Grid Import</th>
+                                <th>Tariff Slab</th>
+                                <th>Net Bill (SEMS)</th>
+                                <th>Conventional Grid</th>
+                                <th>Net Savings</th>
+                                <th>Audit Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="monthly-billing-ledger-tbody">
+                            <!-- Populated dynamically via sems_features.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: TNEB TARIFF COMPARE & SOLAR SAVINGS -->
+        <section id="tab-compare" class="tab-pane">
+            <div class="section-title-bar">
+                <div class="title-with-pill">
+                    <h2>📊 TNEB Tariff Comparison &amp; Solar Savings</h2>
+                    <span class="engine-badge">Conventional Grid Cost vs. SEMS AI Autonomous Optimization</span>
+                </div>
+                <div class="month-selector-badge">
+                    <span>TANGEDCO LT-IA Domestic Tariff Rules</span>
+                </div>
+            </div>
+
+            <!-- Side-by-Side Comparison Grid -->
+            <div class="compare-grid">
+                <!-- Standard Grid Bill Card -->
+                <div class="compare-card standard">
+                    <h3>❌ Conventional Grid Bill (Without SEMS)</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Assuming 100% of household energy is imported from commercial utility grid without renewable offset.</p>
+                    <div class="compare-price" id="comp-gross-bill">₹ 84.50</div>
+                    <div style="font-size: 0.85rem; font-weight: 700; color: #ef4444;">100% Utility Grid Dependency • Full Slab Escalation</div>
+                </div>
+
+                <!-- SEMS AI Microgrid Bill Card -->
+                <div class="compare-card sems">
+                    <h3>✅ SEMS Autonomous AI Bill (With Solar + BESS)</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Predicted &amp; dispatched by Deep Q-Network with clean solar priority and battery peak shaving.</p>
+                    <div class="compare-price" id="comp-sems-bill">₹ 28.50</div>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <span class="badge-saved" id="comp-saved-pct" style="background: rgba(16, 185, 129, 0.15); color: #059669; padding: 4px 10px; border-radius: var(--radius-full); font-weight: 700; font-size: 0.85rem;">66% Reduction in Daily Bill</span>
+                        <span style="font-size: 0.9rem; font-weight: 700; color: #10b981;">Net Savings: <strong id="comp-saved-amount">₹ 56.00</strong> Today</span>
+                    </div>
+                </div>
+            </div>
+
+                    </section>
+
+        <!-- SECTION 4: EXPORT & SHARE -->
+        <section id="tab-export" class="tab-pane">
+            <div class="section-title-bar">
+                <div class="title-with-pill">
+                    <h2>📤 Digital Bill Receipt &amp; Export Center</h2>
+                    <span class="engine-badge">Printable &amp; Verifiable Energy Statement</span>
+                </div>
+            </div>
+
+            <!-- Export Receipt Box Card -->
+            <div class="card" style="padding: 24px;">
+                <div class="export-receipt-box">
+                    <div class="receipt-header">
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0284c7;">⚡ SEMS SMART ENERGY RECEIPT</h3>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">Autonomous IoT Microgrid Platform</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">BILLING DATE</div>
+                            <div id="export-receipt-date" style="font-weight: 800; font-size: 0.95rem;">27/09/2026</div>
+                        </div>
+                    </div>
+
+                    <div class="receipt-row">
+                        <span>Total Gross Energy Demand:</span>
+                        <strong id="export-units-gross">14.20 Units</strong>
+                    </div>
+                    <div class="receipt-row" style="color: #f59e0b;">
+                        <span>☀️ Solar PV Direct Offset:</span>
+                        <strong id="export-units-solar">- 12.80 Units</strong>
+                    </div>
+                    <div class="receipt-row" style="color: #10b981;">
+                        <span>🔋 Battery ESS Discharge Offset:</span>
+                        <strong id="export-units-batt">- 4.50 Units</strong>
+                    </div>
+                    <div class="receipt-row" style="color: #0284c7;">
+                        <span>⚡ Utility Grid Energy Imported:</span>
+                        <strong id="export-units-grid">6.06 Units</strong>
+                    </div>
+                    <div class="receipt-row">
+                        <span>TNEB Tariff Tier Applied:</span>
+                        <strong id="export-applied-slab">Slab 2 (101-400 Units @ ₹4.70)</strong>
+                    </div>
+
+                    <div class="receipt-total-row">
+                        <span>Total Net Electricity Cost:</span>
+                        <span id="export-final-cost">₹ 28.50</span>
+                    </div>
+                    <div id="export-final-saved" style="text-align: center; margin-top: 14px; font-weight: 800; color: #10b981; font-size: 1rem;">
+                        Net Savings Today: ₹ 45.20
+                    </div>
+
+                    <div class="export-actions">
+                        <button id="btn-share-whatsapp" class="btn-whatsapp">📲 Share via WhatsApp</button>
+                        <button id="btn-print-receipt" class="action-btn" style="background: #0284c7; color: #fff; padding: 12px 24px; border: none; font-weight: 700; border-radius: var(--radius-md); cursor: pointer;">
+                            🖨️ Download / Print PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: DATASET & LIVE TELEMETRY EXPLORER -->
+        <section id="tab-dataset" class="tab-pane">
+            <div class="section-title-bar">
+                <div class="title-with-pill">
+                    <h2>🗄️ Telemetry Dataset &amp; Ground-Truth Explorer</h2>
+                    <span class="engine-badge">Real-Time Sensor Streams &amp; Model Evaluation Records</span>
+                </div>
+                <div class="month-selector-badge">
+                    <span class="badge-dot dot-emerald"></span>
+                    <span id="scheduler-status-tag">Automatic Collector Active (15m &amp; 1h)</span>
+                </div>
+            </div>
+
+            <!-- Dataset Stats KPI Counters -->
+            <div class="kpi-grid">
+                <div class="kpi-card card-load">
+                    <div class="kpi-header">
+                        <span class="kpi-title">📊 Total Ingested Records</span>
+                        <span class="kpi-icon">🗄️</span>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-num" id="ds-stat-total">1,485</div>
+                        <div class="kpi-desc">15-Min: <strong id="ds-stat-15min">1,240</strong> • 1-Hour: <strong id="ds-stat-1hour">245</strong></div>
+                    </div>
+                </div>
+
+                <div class="kpi-card card-solar">
+                    <div class="kpi-header">
+                        <span class="kpi-title">☀️ Average Solar / Load</span>
+                        <span class="kpi-icon">⚡</span>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-num" id="ds-stat-avg-solar-load">3.8 / 2.2 <span class="kpi-unit">kW</span></div>
+                        <div class="kpi-desc" id="ds-stat-avg-soc">Avg Battery SOC: 72% • Avg Cost: ₹2.10</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card card-battery">
+                    <div class="kpi-header">
+                        <span class="kpi-title">⏱️ Scheduler Timers</span>
+                        <span class="kpi-icon">⏰</span>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-num" style="font-size: 1.15rem;" id="scheduler-next-15m">Every :00, :15, :30, :45</div>
+                        <div class="kpi-desc" id="ds-stat-last-time">Last Collection: 12:05 PM</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dataset Management Toolbar & Table Card -->
+            <div class="card monthly-table-card" style="margin-top: 20px;">
+                <div class="dataset-toolbar">
+                    <div class="dataset-actions-left" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button id="btn-collect-manual" class="action-btn" title="Capture immediate telemetry snapshot">📸 Snapshot</button>
+                        <button id="btn-collect-15m" class="action-btn" title="Collect 15-minute scheduled point">⏱️ 15-Min</button>
+                        <button id="btn-collect-1h" class="action-btn" title="Collect 1-hour scheduled point">⏰ 1-Hour</button>
+                        <button id="btn-refresh-dataset" class="action-btn" title="Refresh dataset table">🔄 Refresh</button>
+                        <button id="btn-seed-dataset" class="action-btn" title="Seed 24 hours of baseline telemetry">🌱 Seed Baseline</button>
+                        <button id="btn-clear-dataset" class="action-btn danger-btn" title="Clear recorded dataset">🗑️ Clear</button>
+                    </div>
+                    <div class="dataset-actions-right" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <select id="dataset-interval-filter" class="custom-select" style="padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-card);">
+                            <option value="all">All Intervals</option>
+                            <option value="15min">15-Minute</option>
+                            <option value="1hour">1-Hour</option>
+                            <option value="manual">Manual</option>
+                        </select>
+                        <div class="search-box">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="dataset-search-input" placeholder="Search timestamp, strategy..." class="dataset-search">
+                        </div>
+                        <button id="btn-export-csv" class="action-btn export-btn" title="Download telemetry as CSV spreadsheet">
+                            <span>📥 Export CSV</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Telemetry Records Table -->
+                <div class="table-responsive-container">
+                    <table class="dataset-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Demand</th>
+                                <th>Battery SOC</th>
+                                <th>Tariff</th>
+                                <th>AI Strategy</th>
+                                <th>Solar kW</th>
+                                <th>Battery kW</th>
+                                <th>Grid kW</th>
+                                <th>Cost</th>
+                                <th>Weather</th>
+                                <th>Source</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataset-table-body">
+                            <!-- Populated dynamically via DatasetViewerManager -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Footer -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-top: 1px solid var(--border-color); font-size: 0.85rem;">
+                    <span id="dataset-pagination-info">Showing records...</span>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <button id="btn-dataset-first" class="action-btn" style="padding: 4px 8px;">«</button>
+                        <button id="btn-dataset-prev" class="action-btn" style="padding: 4px 8px;">‹ Prev</button>
+                        <span id="dataset-page-indicator" style="font-weight: 700; padding: 0 6px;">Page 1</span>
+                        <button id="btn-dataset-next" class="action-btn" style="padding: 4px 8px;">Next ›</button>
+                        <button id="btn-dataset-last" class="action-btn" style="padding: 4px 8px;">»</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 6: HISTORY & MONTHLY INTELLIGENCE -->
+        <section id="tab-history" class="tab-pane">
+            <!-- Link to Monthly Usage & Billing Hub Banner -->
+            <div class="card" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(37,99,235,0.06), rgba(16,185,129,0.06)); border: 1px solid rgba(37,99,235,0.25);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; padding: 6px 4px;">
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        <span style="font-size: 2rem;">⚡</span>
+                        <div>
+                            <strong style="font-size: 1.05rem; color: var(--text-primary); display: block;">Official Monthly TNEB Billing &amp; Telescopic Slabs</strong>
+                            <div style="font-size: 0.83rem; color: var(--text-muted); margin-top: 2px;">Itemized tier breakdowns, bill runaway prevention, and target auto-pacing have been integrated directly into the Usage &amp; Bill Hub.</div>
+                        </div>
+                    </div>
+                    <button class="action-btn" onclick="if(window.veraUI) window.veraUI.switchTab('tab-usage')" style="background: var(--primary-color); color: #fff; font-weight: 800; font-size: 0.85rem; padding: 10px 18px; border-radius: var(--radius-sm); border: none; cursor: pointer; box-shadow: 0 2px 8px rgba(37,99,235,0.3);">
+                        ⚡ View Monthly Usage &amp; Bill
+                    </button>
+                </div>
+            </div>
+
+            <!-- Historical Dispatch Trend Chart Card -->
+            <div class="card">
+                <div class="card-header-clean">
+                    <div class="header-with-controls">
+                        <div>
+                            <h2>📈 Historical Energy Dispatch & Cost Analytics</h2>
+                            <span class="header-sub">Ground-truth historical records from SQLite database & telemetry</span>
+                        </div>
+                        <div class="period-btn-group" role="group" aria-label="History Period Selector">
+                            <button class="period-btn active" data-period="today">Today (24h)</button>
+                            <button class="period-btn" data-period="7days">Last 7 Days</button>
+                            <button class="period-btn" data-period="30days">Last 30 Days</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-wrapper-large">
+                    <canvas id="chart-history-series-tab"></canvas>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- SECTION 7: SYSTEM ALERTS & NOTIFICATIONS -->
+        <section id="tab-alerts" class="tab-pane">
+            <div class="section-title-bar">
+                <div class="title-with-pill">
+                    <h2>🔔 Active System Alerts &amp; Critical Notifications</h2>
+                    <span class="engine-badge" id="alerts-active-count">0 Active</span>
+                </div>
+                <div class="month-selector-badge" style="display: flex; gap: 8px; align-items: center;">
+                    <button id="btn-tab-mark-read" class="action-btn" style="background: rgba(37,99,235,0.12); color: #2563eb; border: 1px solid rgba(37,99,235,0.3); font-weight: 700; font-size: 0.82rem; padding: 6px 14px; border-radius: var(--radius-sm); cursor: pointer;">
+                        ✓ Mark All as Read
+                    </button>
+                    <button id="btn-tab-clear-all" class="action-btn" style="background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-weight: 700; font-size: 0.82rem; padding: 6px 14px; border-radius: var(--radius-sm); cursor: pointer;">
+                        🗑️ Clear All
+                    </button>
+                </div>
+            </div>
+
+            <div class="card" style="padding: 24px;">
+                <div id="alerts-list-container" style="display: flex; flex-direction: column; gap: 12px;">
+                    <!-- Populated dynamically via AlertCenterManager in alerts.js -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- App Footer -->
+    <footer class="app-footer">
+        <div class="footer-container">
+            <div>
+                <strong>⚡ VERA</strong> — Virtual Energy Recommendation Assistant
+            </div>
+            <div class="footer-meta">
+                <span>Stage 1: Data Collection</span> •
+                <span>Stage 2: Preprocessing</span> •
+                <span>Stage 3: ML Predictions</span> •
+                <span>Stage 4: DQN Recommendation</span> •
+                <span>Stage 5: Explainable AI</span> •
+                <span>Stage 6: Web Dashboard</span>
+            </div>
+            <div>
+                <span class="version-tag">v2.0.0 • Pure Vanilla JS & HTML5</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <!-- APK Download QR Code Modal -->
+    <div id="apk-qr-modal" style="display:none; position:fixed; z-index:99999; left:0; top:0; width:100%; height:100%; background:rgba(15,23,42,0.75); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:20px; padding:28px; max-width:400px; width:90%; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.3); position:relative;">
+            <button onclick="document.getElementById('apk-qr-modal').style.display='none'" style="position:absolute; right:16px; top:16px; background:none; border:none; font-size:22px; cursor:pointer; color:#64748b;">✕</button>
+            <div style="font-size:36px; margin-bottom:8px;">📱</div>
+            <h3 style="font-size:18px; font-weight:800; color:#0f172a; margin-bottom:6px;">Install SEMS on Your Phone</h3>
+            <p style="font-size:13px; color:#64748b; margin-bottom:16px;">Scan this QR code with your Android phone's camera (connected to the same Wi-Fi) to download and install the app:</p>
+            <div style="display:flex; justify-content:center; margin-bottom:16px;">
+                <img src="/apk/qr" alt="Scan to Download APK" style="width:200px; height:200px; border-radius:12px; border:2px solid #e2e8f0; padding:6px; background:#fff;">
+            </div>
+            <div style="background:#f8fafc; border-radius:10px; padding:10px; font-size:12px; color:#334155; margin-bottom:16px; word-break:break-all;">
+                <strong>Direct Link:</strong><br>
+                <a href="http://10.33.45.111:8080/apk" target="_blank" style="color:#0284c7; font-weight:bold;">http://10.33.45.111:8080/apk</a>
+            </div>
+            <a href="/apk" download style="display:block; width:100%; padding:12px; background:#0284c7; color:#fff; border-radius:12px; font-weight:700; text-decoration:none; font-size:14px;">Direct Download APK to PC</a>
+        </div>
+    </div>
+
+    <!-- Proposed System Pipeline & Model Accuracy Verification Modal -->
+    <div id="pipeline-verification-modal" style="display:none; position:fixed; z-index:99999; left:0; top:0; width:100%; height:100%; background:rgba(15,23,42,0.8); backdrop-filter:blur(6px); align-items:center; justify-content:center; overflow-y:auto; padding:20px;">
+        <div style="background:#fff; border-radius:24px; padding:32px; max-width:960px; width:95%; max-height:90vh; overflow-y:auto; box-shadow:0 25px 50px -12px rgba(0,0,0,0.4); position:relative; font-family:inherit;">
+            <button onclick="document.getElementById('pipeline-verification-modal').style.display='none'" style="position:absolute; right:20px; top:20px; background:#f1f5f9; border:none; border-radius:50%; width:36px; height:36px; font-size:18px; cursor:pointer; color:#64748b; display:flex; align-items:center; justify-content:center;">✕</button>
+            
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+                <span style="font-size:32px;">🩺</span>
+                <div>
+                    <h2 style="font-size:22px; font-weight:800; color:#0f172a; margin:0;">Proposed Architecture Pipeline Verification</h2>
+                    <p style="font-size:13px; color:#64748b; margin:2px 0 0 0;">End-to-end operational verification across all 13 proposed system stages & AI prediction accuracies.</p>
+                </div>
+            </div>
+
+            <!-- Summary Badges -->
+            <div style="display:flex; flex-wrap:wrap; gap:12px; margin:20px 0; padding:14px; background:#f8fafc; border-radius:16px; border:1px solid #e2e8f0; align-items:center; justify-content:space-between;">
+                <div style="display:flex; gap:16px; align-items:center;">
+                    <div>
+                        <span style="font-size:11px; text-transform:uppercase; color:#64748b; font-weight:700;">Overall Status</span>
+                        <div id="pipe-overall-status" style="font-size:16px; font-weight:800; color:#10b981;">✅ ALL 13 STAGES PASS</div>
+                    </div>
+                    <div style="width:1px; height:30px; background:#cbd5e1;"></div>
+                    <div>
+                        <span style="font-size:11px; text-transform:uppercase; color:#64748b; font-weight:700;">Composite Accuracy</span>
+                        <div id="pipe-composite-acc" style="font-size:16px; font-weight:800; color:#0284c7;">94.54%</div>
+                    </div>
+                    <div style="width:1px; height:30px; background:#cbd5e1;"></div>
+                    <div>
+                        <span style="font-size:11px; text-transform:uppercase; color:#64748b; font-weight:700;">Pipeline Latency</span>
+                        <div id="pipe-total-latency" style="font-size:16px; font-weight:800; color:#8b5cf6;">~46 ms</div>
+                    </div>
+                </div>
+                <button onclick="loadPipelineVerificationData()" style="padding:8px 16px; background:#0284c7; color:#fff; border:none; border-radius:10px; font-weight:700; font-size:12px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                    <span>🔄</span> Run Test Again
+                </button>
+            </div>
+
+            <!-- Model Accuracy Table -->
+            <h3 style="font-size:16px; font-weight:800; color:#1e293b; margin:16px 0 10px 0; display:flex; align-items:center; gap:8px;">
+                <span>🎯</span> Prediction Layer Accuracy Matrix
+            </h3>
+            <div style="overflow-x:auto; margin-bottom:24px;">
+                <table style="width:100%; border-collapse:collapse; font-size:13px; text-align:left;">
+                    <thead>
+                        <tr style="background:#f1f5f9; color:#475569; border-bottom:2px solid #cbd5e1;">
+                            <th style="padding:10px 14px;">Model Name</th>
+                            <th style="padding:10px 14px;">Target Variable</th>
+                            <th style="padding:10px 14px;">MAE</th>
+                            <th style="padding:10px 14px;">RMSE</th>
+                            <th style="padding:10px 14px;">MAPE</th>
+                            <th style="padding:10px 14px;">R² Score</th>
+                            <th style="padding:10px 14px; text-align:right;">Accuracy %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pipe-accuracy-tbody">
+                        <tr style="border-bottom:1px solid #e2e8f0;">
+                            <td style="padding:10px 14px; font-weight:700; color:#0f172a;">Solar MLP</td>
+                            <td style="padding:10px 14px; color:#64748b;">Solar Generation (W/m² & kW)</td>
+                            <td style="padding:10px 14px;">10.305</td>
+                            <td style="padding:10px 14px;">10.315</td>
+                            <td style="padding:10px 14px;">4.12%</td>
+                            <td style="padding:10px 14px;">0.9420</td>
+                            <td style="padding:10px 14px; text-align:right; font-weight:800; color:#10b981;">95.88%</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #e2e8f0;">
+                            <td style="padding:10px 14px; font-weight:700; color:#0f172a;">Load LSTM</td>
+                            <td style="padding:10px 14px; color:#64748b;">Household Load Demand (kW)</td>
+                            <td style="padding:10px 14px;">0.180</td>
+                            <td style="padding:10px 14px;">0.204</td>
+                            <td style="padding:10px 14px;">8.18%</td>
+                            <td style="padding:10px 14px;">0.8870</td>
+                            <td style="padding:10px 14px; text-align:right; font-weight:800; color:#10b981;">91.82%</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #e2e8f0;">
+                            <td style="padding:10px 14px; font-weight:700; color:#0f172a;">Price XGBoost</td>
+                            <td style="padding:10px 14px; color:#64748b;">Grid Electricity Tariff (₹/kWh)</td>
+                            <td style="padding:10px 14px;">0.253</td>
+                            <td style="padding:10px 14px;">0.438</td>
+                            <td style="padding:10px 14px;">4.08%</td>
+                            <td style="padding:10px 14px;">0.9848</td>
+                            <td style="padding:10px 14px; text-align:right; font-weight:800; color:#10b981;">95.92%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 13 Stages Pipeline List -->
+            <h3 style="font-size:16px; font-weight:800; color:#1e293b; margin:16px 0 10px 0; display:flex; align-items:center; gap:8px;">
+                <span>⚡</span> 13-Stage Operational Pipeline Execution
+            </h3>
+            <div id="pipe-stages-list" style="display:flex; flex-direction:column; gap:8px;">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
+    <!-- Official EB Statement Invoice Modal -->
+    <div id="eb-invoice-modal" class="eb-modal-backdrop" role="dialog" aria-modal="true" aria-label="Official Electricity Bill Invoice">
+        <div class="eb-modal-container">
+            <div class="eb-modal-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 20px;">⚡</span>
+                    <strong style="font-size: 15px; color: #0369a1;">Official TANGEDCO / SEMS Monthly Energy Bill Invoice</strong>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button onclick="document.getElementById('eb-invoice-iframe').contentWindow.print()" class="action-btn" style="background: #0284c7; color: #fff; padding: 6px 14px; border: none; border-radius: var(--radius-sm); font-weight: 700; cursor: pointer;">
+                        🖨️ Print / PDF
+                    </button>
+                    <button id="btn-close-invoice-modal" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b; padding: 4px 8px;">✕</button>
+                </div>
+            </div>
+            <iframe id="eb-invoice-iframe" class="eb-modal-body" title="TNEB Electricity Bill Statement"></iframe>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/ui.js"></script>
+    <script src="/static/js/charts.js"></script>
+    <script src="/static/js/p2p.js"></script>
+    <script src="/static/js/carbon.js"></script>
+    <script src="/static/js/simulator.js"></script>
+    <script src="/static/js/retraining.js"></script>
+    <script src="/static/js/alerts.js"></script>
+    <script src="/static/js/energy-flow.js"></script>
+    <script src="/static/js/notifications.js"></script>
+    <script src="/static/js/sems_features.js"></script>
+    <script src="/static/js/enterprise_features.js"></script>
+    <script src="/static/js/monthly_billing.js"></script>
+    <script src="/static/js/dashboard.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,31 @@
+.env
+
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+*.sqlite3-journal
+
+venv/
+.venv/
+env/
+
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# JVM / Gradle Crash Dumps
+hs_err_pid*.log
+replay_pid*.log
+
+# Large Binaries & Build Outputs
+*.apk
+*.aab
+build/
+.dart_tool/
+
+# Temporary / Scratch Analysis
+scratch_analysis*.json
+*.log

@@ -1,0 +1,14 @@
+Category,Slab_Range,Rate_Per_Unit_INR,Tax_Rate_Percent,Notes
+Domestic (<= 500 Units),0 - 200,0.0,0,Free units under 2026 scheme
+Domestic (<= 500 Units),201 - 400,4.7,0,Standard base rate
+Domestic (<= 500 Units),401 - 500,6.3,0,Pre-threshold tier
+Domestic (> 500 Units),0 - 100,0.0,0,Reduced subsidy once >500 units crossed
+Domestic (> 500 Units),101 - 400,4.7,0,Standard base rate
+Domestic (> 500 Units),401 - 500,6.3,0,Middle tier
+Domestic (> 500 Units),501 - 600,8.4,0,Penalty hike layer
+Domestic (> 500 Units),601 - 800,9.45,0,Higher consumption tier
+Domestic (> 500 Units),801 - 1000,10.5,0,Premium tier
+Domestic (> 500 Units),Above 1000,11.55,0,Top slab rate
+Commercial (Low Cons.),0 - 100,6.65,5,LT-V Category
+Commercial (High Cons.),All units (if >100),10.45,5,LT-V Category for high usage
+Industries & IT Services,All units,8.25,5,LT-IIIB Category
