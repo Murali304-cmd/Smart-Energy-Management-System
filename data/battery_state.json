@@ -1,20 +1,20 @@
 {
   "current_date": "2026-10-10",
-  "battery_soc": 74.88,
-  "battery_energy_kwh": 748.8073,
+  "battery_soc": 74.86,
+  "battery_energy_kwh": 748.6307,
   "battery_capacity_kwh": 1000.0,
-  "battery_power_kw": 0.74,
+  "battery_power_kw": 0.65,
   "battery_mode": "discharging",
   "solar_power_kw": 0.0,
-  "household_load_kw": 0.74,
+  "household_load_kw": 0.65,
   "grid_power_kw": 0.0,
   "grid_export_kw": 0.0,
   "today_solar_kwh": 1221.293,
-  "today_load_kwh": 3684.194,
-  "today_battery_discharge_kwh": 3049.875,
+  "today_load_kwh": 3684.356,
+  "today_battery_discharge_kwh": 3050.037,
   "today_battery_charge_kwh": 383.242,
   "today_grid_import_kwh": 0.0,
   "today_grid_export_kwh": 204.009,
   "today_cost_inr": 0.0,
-  "last_updated": "2026-10-10T18:04:09.554496+00:00"
+  "last_updated": "2026-10-10T18:15:09.254262+00:00"
 }

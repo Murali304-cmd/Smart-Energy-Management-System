@@ -2181,7 +2181,7 @@ def get_models_accuracy_metrics():
 @app.get("/api/benchmarks/multi-day")
 def get_multi_day_benchmark_data():
     """Returns multi-day cost optimization benchmark comparing Grid-Only, Rule-Based, and DQN AI Dispatch."""
-    bench_file = Path(r"C:\Users\mural\.gemini\antigravity-ide\brain\ef5499b0-9c54-4e91-9d83-434200f03153\multi_day_benchmark_results.json")
+    bench_file = BASE_DIR / "data" / "multi_day_benchmark_results.json"
     if bench_file.exists():
         try:
             with open(bench_file, "r", encoding="utf-8") as f:

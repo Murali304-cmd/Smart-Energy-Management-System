@@ -1,0 +1,83 @@
+{
+  "benchmark_duration_days": 7,
+  "total_intervals": 336,
+  "metrics": {
+    "grid_only": {
+      "total_cost_inr": 1370.59,
+      "grid_dependency_pct": 100.0,
+      "peak_grid_demand_kw": 4.27,
+      "cost_savings_inr": 0.0,
+      "cost_savings_pct": 0.0
+    },
+    "rule_based": {
+      "total_cost_inr": 593.72,
+      "grid_dependency_pct": 38.1,
+      "peak_grid_demand_kw": 4.27,
+      "cost_savings_inr": 776.87,
+      "cost_savings_pct": 56.7
+    },
+    "dqn_ai": {
+      "total_cost_inr": 593.03,
+      "grid_dependency_pct": 38.1,
+      "peak_grid_demand_kw": 4.27,
+      "cost_savings_inr": 777.56,
+      "cost_savings_pct": 56.7,
+      "solar_utilization_pct": 47.5,
+      "battery_energy_discharged_kwh": 82.16,
+      "power_balance_violations": 0,
+      "safety_interlock_interventions": 94,
+      "physical_safety_violations": 0
+    }
+  },
+  "daily_breakdown": [
+    {
+      "day": 1,
+      "grid_only_cost_inr": 245.6,
+      "rule_based_cost_inr": 105.34,
+      "dqn_cost_inr": 105.34,
+      "savings_vs_grid_pct": 57.1
+    },
+    {
+      "day": 2,
+      "grid_only_cost_inr": 195.35,
+      "rule_based_cost_inr": 90.89,
+      "dqn_cost_inr": 90.89,
+      "savings_vs_grid_pct": 53.5
+    },
+    {
+      "day": 3,
+      "grid_only_cost_inr": 193.82,
+      "rule_based_cost_inr": 86.55,
+      "dqn_cost_inr": 86.55,
+      "savings_vs_grid_pct": 55.3
+    },
+    {
+      "day": 4,
+      "grid_only_cost_inr": 190.54,
+      "rule_based_cost_inr": 100.03,
+      "dqn_cost_inr": 99.34,
+      "savings_vs_grid_pct": 47.9
+    },
+    {
+      "day": 5,
+      "grid_only_cost_inr": 196.3,
+      "rule_based_cost_inr": 72.21,
+      "dqn_cost_inr": 72.2,
+      "savings_vs_grid_pct": 63.2
+    },
+    {
+      "day": 6,
+      "grid_only_cost_inr": 181.5,
+      "rule_based_cost_inr": 81.44,
+      "dqn_cost_inr": 81.44,
+      "savings_vs_grid_pct": 55.1
+    },
+    {
+      "day": 7,
+      "grid_only_cost_inr": 167.48,
+      "rule_based_cost_inr": 57.26,
+      "dqn_cost_inr": 57.26,
+      "savings_vs_grid_pct": 65.8
+    }
+  ]
+}
