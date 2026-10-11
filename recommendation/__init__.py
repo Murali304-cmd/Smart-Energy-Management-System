@@ -16,7 +16,10 @@ from recommendation.environment import (
 )
 from recommendation.dqn_model import DQNNetwork, ReplayBuffer, DQNAgent, StateScaler
 from recommendation.recommender import EnergyRecommenderService, recommend_energy
-from recommendation.train_dqn import train_dqn
+try:
+    from recommendation.train_dqn import train_dqn
+except Exception:
+    train_dqn = None
 
 __all__ = [
     "BatteryConfig",

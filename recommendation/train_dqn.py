@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Dict, Any, List
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 if str(BASE_DIR) not in sys.path:
